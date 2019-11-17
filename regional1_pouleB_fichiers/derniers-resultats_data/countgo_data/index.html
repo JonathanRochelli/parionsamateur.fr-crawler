@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="ad.size" content="width=300,height=250">
+	<title>PMU - ACQ</title>
+	<link rel="stylesheet" href="index_data/style.css" type="text/css">
+	<script type="text/javascript" charset="UTF-8" src="index_data/scripts.js"></script><script src="index_data/ageban-basket-MBMultiCompet6.js"></script><script src="index_data/offre-sportif-2.js"></script>
+	<!-- script: greensock.js -->
+	<!-- script: reglages.js -->
+	<!-- script: moteur.js -->
+	<script type="text/javascript">
+		// initialisation des variables pour l'adserver
+		var clickTag = "";
+		function clicktrough() {
+			console.log('clickTag',clickTag);
+			window.open(window.clickTag);
+		}
+	</script>
+<script type="text/javascript">
+    
+  (function() {
+    var MAX_URL_PARAM_LENGTH = 34;
+    var CLICK_X_URL_KEY = 'nx';
+    var CLICK_Y_URL_KEY = 'ny';
+    var CREATIVE_DIMENSIONS_KEY = 'dim';
+    var AD_URL_PARAM = '&adurl=';
+
+    var relegateNavigation = '';
+    var urlParamMap = {};
+
+    urlParamMap[CLICK_X_URL_KEY] = null;
+    urlParamMap[CLICK_Y_URL_KEY] = null;
+    urlParamMap[CREATIVE_DIMENSIONS_KEY] = null;
+
+    var handleClickTagMessage = function(e) {
+      try {
+        var eventData = JSON.parse(e.data);
+      } catch (err) {
+        return;
+      }
+      if (eventData.isInitClickTag) {
+        if (eventData.clickTags) {
+          for (var i = 0; i < eventData.clickTags.length; i++) {
+            var clkTag = eventData.clickTags[i];
+            window[clkTag.name] = clkTag.url;
+          }
+        } else if (eventData.clickTag) {
+          window.clickTag = eventData.clickTag;
+        }
+        relegateNavigation = eventData.relegateNavigation;
+      }
+    };
+
+    var storeClickCoordinates = function(e) {
+      urlParamMap[CLICK_X_URL_KEY] = Math.round(e.clientX);
+      urlParamMap[CLICK_Y_URL_KEY] = Math.round(e.clientY);
+    };
+
+    var getCreativeDimensions = function() {
+      return window.innerWidth + 'x' + window.innerHeight;
+    }
+
+    var getExitClickParams = function(e) {
+      urlParamMap[CREATIVE_DIMENSIONS_KEY] = getCreativeDimensions();
+
+      var exitParams = '';
+      for (var key in urlParamMap) {
+        exitParams += '&' + key + '=';
+        if (urlParamMap[key] !== null) {
+          exitParams += urlParamMap[key];
+        }
+      }
+      return exitParams;
+    }
+
+    var appendExitClickParams = function(url) {
+      var adUrlIndex = url.toLowerCase().indexOf(AD_URL_PARAM);
+      var paramsToBeAdded = getExitClickParams();
+      if (adUrlIndex > -1 && paramsToBeAdded.length <= MAX_URL_PARAM_LENGTH) {
+        url = url.substr(0, adUrlIndex) + paramsToBeAdded +
+          url.substr(adUrlIndex);
+      };
+      return url;
+    };
+
+    if (open.call) {
+      window.open = function(open) {
+        return function(url, name, features) {
+          url = appendExitClickParams(url);
+          if (relegateNavigation === 'parent') {
+            var message = {'clickTag': url, 'isPostClickTag': true};
+            parent.postMessage(JSON.stringify(message), '*');
+          } else {
+            var args = [url, name];
+            if (features) {
+              args.push(features);
+            }
+            open.apply(window, args);
+          }
+        };
+      }(window.open);
+    }
+
+    if (window.addEventListener) {
+      window.addEventListener(
+          'message', handleClickTagMessage, false);
+      window.addEventListener('mousedown', storeClickCoordinates, true);
+    } else {
+      window.attachEvent('onmessage', handleClickTagMessage);
+    }
+  })();
+    
+  </script></head>
+<body>
+	<div id="stage">
+		<div id="container" data-bg-color="bg" data-value="visuel" class="prematch" style="background-image: url(&quot;https://s3-eu-west-1.amazonaws.com/pmuvisuels/sportif/basket-MBMultiCompet6_300x250.jpg&quot;); background-color: rgb(37, 56, 113); visibility: visible;">
+
+			<!-- step 1 -->
+			<div class="step step1" style="opacity: 0; transform: matrix(1, 0, 0, 1, 20, 0);">
+				<div class="groupe groupe-titre shadowed">
+					<div class="titre" data-scenario="prematch live nodata" data-nodata-msg="" data-value="slogan">ENTREZ EN JEU</div>
+				</div>
+			</div>
+			<!-- /step 1 -->
+
+			<!-- step 2 -->
+			<div class="step step2" data-scenario="prematch live" style="opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);">
+				
+				<div class="groupe groupe-date" data-scenario="prematch" data-bg-color="shadow" style="background-color: rgb(224, 68, 3); opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);"><span data-value="jour">DIM. 17 NOV</span> à <span data-value="heure">01H10</span></div>
+				<div class="groupe groupe-competition" data-value="competition" style="opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);">NBA - Saison régulière</div>
+				<div class="groupe groupe-match" style="opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);">
+					<table cellspacing="0" cellpadding="0">
+						<tbody><tr class="ligne ligne-1">
+							<td class="col-equipe col-equipe-1">
+								<div class="blason" data-src="equipe1.blason"><img src="index_data/47.svg"></div>
+							</td>
+							<td class="col-milieu">
+								<div class="sep" data-scenario="prematch"></div>
+								
+								
+							</td>
+							<td class="col-equipe col-equipe-2">
+								<div class="blason" data-src="equipe2.blason"><img src="index_data/74.svg"></div>
+							</td>
+						</tr>
+						<tr class="ligne ligne-2">
+							<td class="col-equipe col-equipe-1">
+								<div class="nom-equipe" data-value="equipe1.nom">Indiana</div>
+							</td>
+							<td class="col-milieu">
+								
+							</td>
+							<td class="col-equipe col-equipe-2">
+								<div class="nom-equipe" data-value="equipe2.nom">Milwaukee</div>
+							</td>
+						</tr>
+						<tr class="ligne ligne-3" data-value="ligne-cotes">
+							<td class="col-equipe col-equipe-1">
+								<div class="cote" data-value="cote_1">3.6</div>
+							</td>
+							<td class="col-milieu">
+								<div class="nul" data-value="text_n">//</div>
+							</td>
+							<td class="col-equipe col-equipe-2">
+								<div class="cote" data-value="cote_2">1.26</div>
+							</td>
+						</tr>
+					</tbody></table>
+				</div>
+			</div>
+			<!-- /step 2 -->
+
+			<!-- branding (logo) -->
+			<div id="branding">
+				<img src="index_data/PMUfr-SPORT.svg" class="logo-sport">
+			</div>
+
+			<!-- bandeau statique -->
+			<div id="bandeau" data-bg-color="shadow" style="background-color: rgb(224, 68, 3);">
+				<div class="bloc-offre" data-value="bloc-offre" style="transform: matrix(1, 0, 0, 1, 0, 0);">
+					<span class="pre-offre" data-value="pre-offre">JUSQU'À</span>
+					<span class="offre" data-value="offre"><span data-value="offre-montant">100</span>€ OFFERTS<small>*</small></span>
+				</div>
+				<div class="btn-cta" data-text-color="shadow" style="color: rgb(224, 68, 3);">
+					<span data-value="cta">J'EN PROFITE</span>
+					<svg class="chevron" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="7px" height="11px" viewBox="0 0 7 11"><defs><style>.cls-3{fill:#dc4605;}</style></defs><path class="cls-3XXXXX" fill-rule="evenodd" data-fill-color="shadow" d="M3.000,9.000 L0.000,9.000 L4.000,4.500 L0.000,-0.000 L3.000,-0.000 L7.000,4.500 L3.000,9.000 Z" style="fill: rgb(224, 68, 3);"></path></svg>
+				</div>
+				<div class="mentions">*Voir conditions sur PMU.fr</div>
+			</div>
+			
+			<!-- ARJEL -->
+			<div id="arjel">
+				<div id="arjel1">JOUER COMPORTE DES RISQUES :&nbsp;</div>
+				<div id="arjel2">
+					<div class="risque" style="opacity: 0;">ENDETTEMENT, ISOLEMENT...</div>
+					<div class="risque" style="opacity: 1;">ISOLEMENT, DÉPENDANCE...</div>
+					<div class="risque" style="opacity: 0;">DÉPENDANCE, ENDETTEMENT...</div>
+				</div>
+				<div id="arjel3">APPELEZ LE 09 74 75 13 13 (APPEL NON SURTAXÉ)</div>
+			</div>
+
+			<!-- bouttons -->
+			<button id="btInv" class="btn" onclick="clicktrough();"></button>
+			<a id="btArjel" class="btn" href="http://www.joueurs-info-service.fr/" target="_blank"></a>
+
+		</div>
+	</div>
+
+</body></html>
