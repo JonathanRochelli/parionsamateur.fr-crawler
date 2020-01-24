@@ -4,6 +4,11 @@ import PIL.ImageChops as ImageChops
 from PIL import Image
 import mysql.connector
 import json
+import sys
+
+
+#fichier = "./"+sys.argv[1]
+fichier = "./DIVISION3.html"
 
 # -*- coding: utf-8 -*-
 import crawler_equipe
@@ -64,16 +69,16 @@ def cherche_image (ch):
     #Si la score à domicile est à None -> pas de score (reporté ou pas encore joué)
     if (score1 == None): return [None, None]
     #Affichage de l'erreur si une image est manquante
-    if (score1 == -1) : print ("Une image est manquante pour le score à domicile")
+    if (score1 == -1) : print ("\n\n\n !!!!!!!!!!!!!!!!!!! Une image est manquante pour le score à domicile !!!!!!!!!!!!!!!!!!! \n\n\n")
     #Comparaison de l'image pour le score à l'extérieur
     score2 = compare_image (1, img)
-    if (score2 == -1) : print ("Une image est manquante pour le score à l'exterieur")
+    if (score2 == -1) : print ("\n\n\n !!!!!!!!!!!!!!!!!!! Une image est manquante pour le score à domicile !!!!!!!!!!!!!!!!!!! \n\n\n")
     #Retourne sous forme de tableau
     return [score1, score2]
 
+print ("######## Lancement du crawler ########\n")
 #Initialisation du document HTML pour le parser
-soup = BeautifulSoup(open("./DIVISION3.html"), 'html.parser')
-
+soup = BeautifulSoup(open(fichier), 'html.parser')
 #Sélection de la compétition et du niveau
 news_links = soup.find("ul",{'class':'breadcrumb'}).find_all("li")
 #Initialisation du numéro d'élement
@@ -92,6 +97,10 @@ for elem in news_links:
             niveau = elem.span.text.strip()
     elt+=1
 
+print ("############ Compétition #############")
+print (competition+"\n")
+print ("############### Niveau ###############")
+print (niveau+"\n")
 #Sélection de la poule
 news_links = soup.find("div",{'id':'newcms-block-1618'})
 #Si ca existe (il existe des championnats sans poule
@@ -99,10 +108,13 @@ if (news_links == None):
     poule = None
 else:
     poule = news_links.text
+print ("############### Poule ################")
+print (str(poule)+"\n")
 
 match = []
 resultats = {}
 
+print ("############# Les matchs #############\n")
 #Sélection des informations d'un match
 news_links = soup.find("div",{'class':'list-result'})
 #Tous les elements de type div
@@ -113,6 +125,7 @@ for child in children:
     if (child['class'][0] == "title_box"):
         #C'est la journée
         journee = child.text.strip().split(" ")[-1]
+        print ("############## Journée "+journee+" #############\n")
         #Nouvalle journée pour le json
         resultats[journee] = []
     #Sinon c'est un match
@@ -141,7 +154,8 @@ for child in children:
         match["exterieur"] = ext
         match["scoreDom"] = score[0]
         match["scoreExt"]=score[1]
-        #Ajout d
+        print(str(match)+"\n")
+        #Ajout du match
         resultats[journee].append(match)
 
 #Enregistrement dans le fichier JSON

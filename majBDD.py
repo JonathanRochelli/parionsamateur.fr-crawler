@@ -75,10 +75,12 @@ for journ in resultats:
         if (len(rows) == 0):
             req = "INSERT INTO matchs (idMatchs, score_dom, score_ext, cote_dom, cote_ext, cote_nul, date , idCompetitions_COMPETITIONS, journee, idDivisions_DIVISIONS, domicile, exterieur, idNiveaux_NIVEAUX) \
                 VALUES (Null, "+str(scoreDom)+","+str(scoreExt)+","+'0'+","+'0'+","+'0'+",'"+date+"',"+str(idCompetition)+","+str(journ)+","+str(idDivision)+","+str(idDom)+","+str(idExt)+","+str(idNiveau)+")"
+            print(req)
             cursor.execute(req)
         #Sinon on le met à jour
         else:
-            req = "UPDATE matchs SET score_dom = "+str(scoreDom)+", score_ext = "+str(scoreExt)+";"
+            req = "UPDATE matchs SET score_dom = "+str(scoreDom)+", score_ext = "+str(scoreExt)+" WHERE domicile = "+str(idDom)+" AND exterieur = "+str(idExt)+" AND date = '"+date+"';"
+            print(req)
             cursor.execute(req)
 
         conn.commit()   
