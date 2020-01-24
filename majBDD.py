@@ -1,13 +1,15 @@
 import mysql.connector
 import json
+import sys
 
+fichier = sys.argv[1]
 #Année en cours
 ANNEE = "2019 - 2020"
 #Connexion à la base de données
 conn = mysql.connector.connect(host="localhost", user="root", password="", database="parionsamateur")
 cursor = conn.cursor()
 #Lecture du fichier JSON
-with open("resultat.json","r") as f:
+with open(fichier,"r") as f:
     resultats = json.load(f)
 #POur chaque journée
 for journ in resultats:

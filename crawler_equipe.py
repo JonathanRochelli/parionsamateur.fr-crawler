@@ -5,8 +5,8 @@ from PIL import Image
 import mysql.connector
 import sys
 
-#fichier = "./"+sys.argv[1]
-fichier = "./DIVISION3.html"
+fichier = "./"+sys.argv[1]
+#fichier = "./DIVISION3.html"
 print ("Traitement du fichier : "+fichier+"\n")
 
 hote = "localhost"

@@ -7,8 +7,8 @@ import json
 import sys
 
 
-#fichier = "./"+sys.argv[1]
-fichier = "./DIVISION3.html"
+fichier = "./"+sys.argv[1]
+#fichier = "./DIVISION3.html"
 
 # -*- coding: utf-8 -*-
 import crawler_equipe
@@ -159,7 +159,7 @@ for child in children:
         resultats[journee].append(match)
 
 #Enregistrement dans le fichier JSON
-with open("resultat.json", "w") as f:
+with open("resultat_"+sys.argv[1].split(".")[0]+".json", "w") as f:
     json.dump(resultats, f, indent=4)
 
 
