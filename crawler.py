@@ -1,198 +1,154 @@
 from bs4 import BeautifulSoup
-import requests
+from unidecode import unidecode
 import PIL.ImageChops as ImageChops
 from PIL import Image
 import mysql.connector
-import sys
+import json
 
+# -*- coding: utf-8 -*-
 import crawler_equipe
-ANNEE = "2019 - 2020"
- 
+
+#Fonction permettante de changer le format de date de Dimanche 8 Septembre 2019 en 2019/09/08
 def date_format(date):
-
-    mois = ["","janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+    #Tableau de mois
+    mois = ["","janvier","fa(c)vrier","mars","avril","mai","juin","juillet","aout","septembre","octobre","novembre","da(c)cembre"];
+    #Découpe de la chaîne de caractère
     date_split = date.split()
-    if (int(date_split[1]) < 10): jour = "0"+date_split[1]
-    else : jour = str(date_split[1])
-
-    mois = str(mois.index(date_split[2].lower()))
+    #Stockage du jour
+    jour = str(date_split[1])
+    #Ajustement du jour : si il est inférieur à 10 ajouter un 0
+    if (int(date_split[1]) < 10): jour = "0"+jour
+    #Selection du mois par rapport à son numéro on connaît l'indice du tableau
+    mois = str(mois.index(unidecode(date_split[2].lower())))
+    #Ajustement du jour : si il est inférieur à 10 ajouter un 0
     if (int(mois) < 10): mois = "0"+mois
-
+    #Stockage de l'année
     annee = date_split[3]
-
+    #Retourne le format que l'on souhaite
     return annee+"/"+mois+"/"+jour
 
-def cherche_image (ch):
-
-    chaine = ch.split("\n")
-    chaine = chaine[1:len(chaine)-1]
-    img = chaine[0].split("-")
-    soup = BeautifulSoup(img[0], 'html.parser')
+#Permet de trouver l'image qui correspond par rapport à la banque d'image (comparaison d'image)
+def compare_image (indice, img):
+    #Initisalisation
+    score = ""
+    #Création d'un objet HTML
+    soup = BeautifulSoup(img[indice], 'html.parser')
+    #Selection de la balise img
     news_links = soup("img",{'class':'number'})
-    score1 = ""
+    #Si il n'y en a pas retourn None
     if (len(news_links) == 0):
-        return [None,None]
-
+        return None
+    #Pour chaque balise (score à domicile à plusieurs chiffres et score à l'exterieur)
     for elts in news_links:
+        #Ouverture de l'image
         im1 = Image.open(elts["src"])
+        #COnparaison avec toutes les images du répertoire
         for i in range (0,20):
             im2 = Image.open("score/"+str(i)+".png")
+            #Si c'est las même on retourne le nom
             if (im1 == im2):
-                score1+=str(i)
-                break
-    soup = BeautifulSoup(img[1], 'html.parser')
-    news_links = soup("img",{'class':'number'})
-    score2 = ""
-    for elts in news_links:
-        im1 = Image.open(elts["src"])
-        for i in range (0,20):
-            im2 = Image.open("score/"+str(i)+".png")
-            if (im1 == im2):
-                score2+=str(i)
-                break
+                return str(i)
+    #Si pas trouvé retourn -1
+    return -1 
     
+#Traite la chaîne de caractère avant la comparaison
+def cherche_image (ch):
+    #Découpage par rapport au retour à la ligne
+    chaine = ch.split("\n")
+    #On ne prend pas le permier et le dernier caractère
+    chaine = chaine[1:len(chaine)-1]
+    #Découpage par rapport au tiret qui représente la jonction entre le score à domicile et celui exterieur
+    img = chaine[0].split("-")
+    #Comparaison de l'image pour le score à domicil
+    score1 = compare_image (0, img)
+    #Si la score à domicile est à None -> pas de score (reporté ou pas encore joué)
+    if (score1 == None): return [None, None]
+    #Affichage de l'erreur si une image est manquante
+    if (score1 == -1) : print ("Une image est manquante pour le score à domicile")
+    #Comparaison de l'image pour le score à l'extérieur
+    score2 = compare_image (1, img)
+    if (score2 == -1) : print ("Une image est manquante pour le score à l'exterieur")
+    #Retourne sous forme de tableau
     return [score1, score2]
 
+#Initialisation du document HTML pour le parser
+soup = BeautifulSoup(open("./DIVISION3.html"), 'html.parser')
 
-conn = mysql.connector.connect(host="localhost", user="root", password="ScooterSlider46$", database="parionsamateur")
-cursor = conn.cursor()
+#Sélection de la compétition et du niveau
+news_links = soup.find("ul",{'class':'breadcrumb'}).find_all("li")
+#Initialisation du numéro d'élement
+elt=0
+#Pour chaque li
+for elem in news_links:
+    #Si la span existe
+    if(elem.span != None):
+        #Et que c'est le deuxième (ca commence à 0)
+        if (elt == 1):
+            #C'est la compétition
+            competition = elem.span.text.strip()
+        #Si c'est le troisième
+        elif (elt == 2):
+            #C'est le niveau
+            niveau = elem.span.text.strip()
+    elt+=1
+
+#Sélection de la poule
+news_links = soup.find("div",{'id':'newcms-block-1618'})
+#Si ca existe (il existe des championnats sans poule
+if (news_links == None):
+    poule = None
+else:
+    poule = news_links.text
 
 match = []
+resultats = {}
 
-soup = BeautifulSoup(open("./"+sys.argv[1]), 'html.parser')
+#Sélection des informations d'un match
+news_links = soup.find("div",{'class':'list-result'})
+#Tous les elements de type div
+children = news_links.findChildren("div")
+#Pour chaques elements
+for child in children:
+    #Si la classe est title_boc
+    if (child['class'][0] == "title_box"):
+        #C'est la journée
+        journee = child.text.strip().split(" ")[-1]
+        #Nouvalle journée pour le json
+        resultats[journee] = []
+    #Sinon c'est un match
+    elif (child['class'][0] == "toshow"):
+        #Initialisation du match
+        match = {}
+        #Selection de la date, l'heure et la division , séparées par des tirets
+        infos_generales = child.find("h4").text.split(" - ")
+        division = infos_generales[0]
+        date = date_format(infos_generales[1])
+        heure = infos_generales[2]
+        #Selection du score en comparant les images
+        score = cherche_image(str(child.find('p').find("span", {'class':'score'})))
+        #L'équipe à domicile
+        dom = child.find("p").find("span", {'class' : 'eqleft'}).find('a').text
+        #L'équipe à  l'exterieur
+        ext = child.find("p").find("span", {'class' : 'eqright'}).find('a').text
+        #Stockage des informations
+        match["competition"] = competition
+        match["niveau"] = niveau
+        match["poule"] = poule
+        match["division"]= division
+        match["date"] = date
+        match["heure"] = heure
+        match["domicile"] = dom
+        match["exterieur"] = ext
+        match["scoreDom"] = score[0]
+        match["scoreExt"]=score[1]
+        #Ajout d
+        resultats[journee].append(match)
 
-#Sélection des équipes à domicile et à l'extérieur et des numéros de journées
-news_links = soup("span",{'class':'eqName'})
-cpt = 0
-elt=0
-for elts in news_links:
-    if (elt%2 == 0):
-        tab = []
-        tab.append(elts.parent.parent.find_previous_sibling("div",{'class':'title_box'}).text.strip().split()[1])
-        tab.append(elts.a.text.strip())
-    else:
-        tab.append(elts.a.text.strip())
-        match.append(tab)
-        cpt+=1
-    elt+=1
-
-#Sélection des score
-news_links = soup("span",{'class':'score'})
-cpt = 0
-elt=0
-for elts in news_links:
-    if (elts.find("span",{'class':'message'}) != None):
-        if (elts.find("span",{'class':'message'}).text != "/"):
-            match[cpt].append(-2)
-            match[cpt].append(-2)
-        else:
-            score = cherche_image(str(elts))
-            match[cpt].append(score[0])
-            match[cpt].append(score[1])
-    else:
-        score = cherche_image(str(elts))
-        match[cpt].append(score[0])
-        match[cpt].append(score[1])
-    cpt += 1
-
-
-while (cpt < len(match)):
-    match[cpt].append(None)
-    match[cpt].append(None)
-    cpt += 1
-
-#Sélection des clés étrangères
-news_links = soup.find("ul",{'class':'breadcrumb'}).find_all("li")
-elt=0
-for elem in news_links:
-    if(elem.span != None):
-        if (elt == 1):
-            competition = elem.span.text.strip()
-        elif (elt == 2):
-            niveau = elem.span.text.strip()
-        elif (elt == 3):
-            division = elem.span.text.strip()
-    elt+=1
+#Enregistrement dans le fichier JSON
+with open("resultat.json", "w") as f:
+    json.dump(resultats, f, indent=4)
 
 
-#Récupération de la date
-news_links = soup("div",{'class':'bloc_result'})
-cpt = 0
-for elts in news_links:
-    date = elts.h4.text.split("-")
-    index = division.find('REGIONAL')
-    if index == -1: match[cpt].append(date_format(date[1])+date[2])
-    else : match[cpt].append(date_format(date[2])+date[3])
-    cpt+=1
-    
 
-#compétition
-req = "SELECT idCompetitions FROM competitions WHERE libelle='"+competition.upper()+"' AND annee='"+ANNEE+"';"
-cursor.execute(req)
-rows = cursor.fetchall()
-idCompetition = rows[0][0]
 
-#division
-req = "SELECT idDivisions FROM divisions WHERE libelle='"+division+"';"
-cursor.execute(req)
-rows = cursor.fetchall()
-if (len(rows) == 0):
-    req = "INSERT INTO divisions (idDivisions, libelle) VALUES (Null, '"+division+"');"
-    cursor.execute(req)
-    conn.commit() 
-    req = "SELECT idDivisions FROM divisions WHERE libelle='"+division+"';"
-    cursor.execute(req)
-    rows = cursor.fetchall()
-
-idDivision = rows[0][0]
-
-for m in match:
-    journ = m[0]
-    dom = m[1]
-    ext = m[2]
-    if (m[3] == None): scoreDom = -1
-    else : scoreDom = m[3]
-    if (m[4] == None): scoreExt = -1
-    else : scoreExt = m[4]
-    date = m[5]
-
-    req = "SELECT idEquipes FROM equipes WHERE libelle = '"+dom+"';"
-    cursor.execute(req)
-    rows = cursor.fetchall()
-    idDom = rows[0][0]
-
-    req = "SELECT idEquipes FROM equipes WHERE libelle = '"+ext+"';"
-    cursor.execute(req)
-    rows = cursor.fetchall()
-    idExt = rows[0][0]
-
-    req = "SELECT idNiveaux FROM niveaux WHERE libelle = '"+niveau+"';"
-    cursor.execute(req)
-    rows = cursor.fetchall()
-    if (len(rows) == 0):
-        req = "INSERT INTO niveaux (idNiveaux, libelle) VALUES (Null, '"+niveau+"');"
-        cursor.execute(req)
-        conn.commit() 
-        req = "SELECT idNiveaux FROM niveaux WHERE libelle = '"+niveau+"';"
-        cursor.execute(req)
-        rows = cursor.fetchall()
-    idNiveau = rows[0][0]
-
-    req = "SELECT * FROM matchs WHERE domicile = "+str(idDom)+" AND exterieur = "+str(idExt)+" AND date = '"+date+"';"
-    cursor.execute(req)
-    rows = cursor.fetchall()
-    if (len(rows) == 0):
-        req = "INSERT INTO matchs (idMatchs, score_dom, score_ext, cote_dom, cote_ext, cote_nul, date , idCompetitions_COMPETITIONS, journee, idDivisions_DIVISIONS, domicile, exterieur, idNiveaux_NIVEAUX) \
-            VALUES (Null, "+str(scoreDom)+","+str(scoreExt)+","+'0'+","+'0'+","+'0'+",'"+date+"',"+str(idCompetition)+","+str(journ)+","+str(idDivision)+","+str(idDom)+","+str(idExt)+","+str(idNiveau)+")"
-        cursor.execute(req)
-    else:
-        req = "UPDATE matchs SET score_dom = "+str(scoreDom)+", score_ext = "+str(scoreExt)+";"
-        cursor.execute(req)
-
-    conn.commit()   
             
-print(match)
-    
-
-        
-        
